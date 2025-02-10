@@ -14,8 +14,8 @@ const int dimX = -1;
 const int dimY = -1;
 
 //dx, dy, pointsX, pointsY, not shared, should be fine
-extern int SARStepXUI = -1;
-extern int SARStepYUI = -1;
+extern int SARstepXUI = -1;
+extern int SARstepYUI = -1;
 extern int pointsX = -1;
 extern int pointsY = -1;
 
@@ -36,17 +36,17 @@ void setDirectionYDown()
     digitalWrite(dirPiny, HIGH); //low = up
 }
 
-void move_x(int SARStepX)
+void move_x(int SARstepX)
 {
-    for(int i = 0; i < SARStepX; i++)
+    for(int i = 0; i < SARstepX; i++)
     {
         step_x();
     }
 }
 
-void move_y(int SARStepY)
+void move_y(int SARstepY)
 {
-    for(int i = 0; i < SARStepY; i++)
+    for(int i = 0; i < SARstepY; i++)
     {
         step_y();
     }
@@ -54,8 +54,8 @@ void move_y(int SARStepY)
 
 void resetSARParams()
 {
-    SARStepXUI = -1;
-    SARStepYUI = -1;
+    SARstepXUI = -1;
+    SARstepYUI = -1;
     pointsY = -1;
     pointsY = -1;
 }
@@ -68,9 +68,9 @@ void initUI()
     {
         if(Serial.available() > 0)
         {
-            SARStepXUI = Serial.parseInt();
-            SARStepYUI = Serial.parseInt();
-            valid = initUIValidation(SARStepXUI, SARStepYUI);
+            SARstepXUI = Serial.parseInt();
+            SARstepYUI = Serial.parseInt();
+            valid = initUIValidation(SARstepXUI, SARstepYUI);
             if(valid == true)
             {
                 //computation for pointsY and pointsY
@@ -85,10 +85,10 @@ void initUI()
         }
     }
     Serial.print("SAR dx SAR dy pointsY pointsY are: \n");
-    Serial.print(SARStepXUI); Serial.print(" "); 
-    Serial.print(SARStepXUI); Serial.print(" ");
-    Serial.print(SARStepXUI); Serial.print(" ");
-    Serial.print(SARStepXUI); Serial.print(" \n");
+    Serial.print(SARstepXUI); Serial.print(" "); 
+    Serial.print(SARstepXUI); Serial.print(" ");
+    Serial.print(SARstepXUI); Serial.print(" ");
+    Serial.print(SARstepXUI); Serial.print(" \n");
 }
 
 void stopSync() //arbitary delay rn
@@ -120,9 +120,16 @@ void step_y()
 /*
 
 */
-void computeSARParams()
+void computeSARParams(int SARstepX, int SARstepY)
 {
-    
+    // output is updated:
+        // SARstepXUI , SARstepYUI , pointsX , pointsY
+    SARstepXUI = SARstepX;
+    SARstepYUI = SARstepY;
+
+    // Points = cm / cm
+    pointsX = dimX / SARstepX;
+    pointsY = dimY / SARstepY;
 }
 
 /*
