@@ -21,21 +21,21 @@ extern const int dimX;
 extern const int dimY;
 
 //dx, dy, pointsX, pointsY, not shared, should be fine
-extern int SARStepXUI;
-extern int SARStepYUI;
+extern int SARstepXUI;
+extern int SARstepYUI;
 extern int pointsX;
 extern int pointsY;
 
 //arbitary delay for now till get radar params for sync
 extern const int arbitaryDelay; //1s
 
-void move_x(int SARStepX);
+void move_x(int SARstepX);
 
 //TODO
 void step_x();
 void step_y();
 
-void move_y(int SARStepY);
+void move_y(int SARstepY);
 
 //TODO
 void computeSARParams();
