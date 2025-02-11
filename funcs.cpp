@@ -122,8 +122,14 @@ void step_y()
 */
 void computeSARParams(int SARstepX, int SARstepY)
 {
-    // output is updated:
+    // Error handling
+    if (!initUIValidation(SARstepX, SARstepY)){
+        return;
+    }
+
+    // Updates:
         // SARstepXUI , SARstepYUI , pointsX , pointsY
+
     SARstepXUI = SARstepX;
     SARstepYUI = SARstepY;
 
@@ -135,9 +141,24 @@ void computeSARParams(int SARstepX, int SARstepY)
 /*
 
 */
-bool initUIValidation(int dx, int dy)
+bool initUIValidation(int SARstepX , int SARstepY)
 {
+    // Check:
+        // Step size > micro step size
+        // Step size < dimensions
+        // TODO: others?
+        
+    // Step size > micro step size
+    if (SARstepX < microStep){return 0;}
+    if (SARstepY < microStep){return 0;}
+    
+    // Step size < dimensions
+    if (SARstepX > dimX){return 0;}
+    if (SARstepY > dimY){return 0;}
 
+
+    // If all is good, then return true
+    return 1;
 }
 
 /*
