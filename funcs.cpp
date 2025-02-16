@@ -166,14 +166,38 @@ bool initUIValidation(int SARstepX , int SARstepY)
 */
 void returnToOrigin()
 {
-
+    // GOAL: Get stepper motor back to pointsX = 0, pointsY = 0
+    // IDEA: 2 for loops that calls the step-motor function back to the origin
+    digitalWrite(dirPinY, HIGH);      // Set Y direction
+    digitalWrite(dirPinX, LOW);       // Set X direction
+    while(pointsY != 0)
+    {
+      digitalWrite(stepPinY, HIGH);   // First half pulse
+      delayMicroseconds(500); 
+      digitalWrite(stepPinY, LOW);    // Second half pulse   
+      delayMicroseconds(500);    
+      pointsY--;
+    }
+    while(pointsX != 0)
+    {
+      digitalWrite(stepPinX, HIGH);   // Write to LEFT movement
+      delayMicroseconds(500);
+      digitalWrite(stepPinX, LOW);    // Second half pulse
+      delayMicroseconds(500);           
+      pointsX--;
+    }
 }
 /*
 
 */
 bool returnToOriginValidation()
 {
-
+    if((pointsX != 0)&&(pointsY != 0)){
+      return False;
+    }
+    else{
+      return True;
+    }
 }
 
 /*
