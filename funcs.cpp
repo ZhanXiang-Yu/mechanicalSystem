@@ -133,7 +133,7 @@ void computeSARParams(int SARstepX, int SARstepY)
     SARstepXUI = SARstepX;
     SARstepYUI = SARstepY;
 
-    // Points = cm / cm
+    // Points = mm / mm
     pointsX = dimX / SARstepX;
     pointsY = dimY / SARstepY;
 }
