@@ -149,12 +149,12 @@ bool initUIValidation(int SARstepX , int SARstepY)
         // TODO: others?
         
     // Step size > micro step size
-    if (SARstepX < microStep){return 0;}
-    if (SARstepY < microStep){return 0;}
+    if (!(SARstepX > microStep)){return 0;}
+    if (!(SARstepY > microStep)){return 0;}
     
     // Step size < dimensions
-    if (SARstepX > dimX){return 0;}
-    if (SARstepY > dimY){return 0;}
+    if (!(SARstepX < dimX)){return 0;}
+    if (!(SARstepY < dimY)){return 0;}
 
 
     // If all is good, then return true
