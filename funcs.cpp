@@ -100,21 +100,30 @@ void stopSync() //arbitary delay rn
 /*
 
 */
+#define stepPinx  
+// Change to the stepx pin on the Arduino
+#define stepPiny  
+// Change to the stepy pin on the Arduino
+#define STEP_DELAY 19 
+// Preset Delay can be changed, 19us for fastest PWM
+
+//Fastest PWM is 25600 for 128 microsteps
+//TODO: do PWM as fast as possible, check motor spec sheet
 void step_x()
 {
+    
     digitalWrite(stepPinx, HIGH);
-    //TODO: do PWM as fast as possible, check motor spec sheet
-    delayMicroseconds(-1);
+    delayMicroseconds(STEP_DELAY);
+    digitalWrite(stepPinx, LOW);
+    delayMicroseconds(STEP_DELAY);
 }
 
-/*
-
-*/
 void step_y()
 {
     digitalWrite(stepPiny, HIGH);
-    //TODO: do PWM as fast as possible, check motor spec sheet
-    delayMicroseconds(-1);
+    delayMicroseconds(STEP_DELAY);
+    digitalWrite(stepPiny, LOW);
+    delayMicroseconds(STEP_DELAY);
 }
 
 /*
