@@ -162,18 +162,37 @@ bool initUIValidation(int SARstepX , int SARstepY)
 }
 
 /*
-
+    - resultToOrigin moves the mechanized system back to (0,0) on the generated coordinate plane
+    - first while loop moves the mechanized system down until y = 0
+    - second while loop moves the mechanized system left until x = 0
+    - assumes that step_y and step_x do not update coord. pos of mechanized system & SARstepUI is mechanized system pos
 */
 void returnToOrigin()
 {
-
+    setDirectionXLeft();                // set Y direction
+    setDirectionYDown();                // set X direction
+    while(SARstepYUI != 0)              // while y != 0
+    {
+      step_y();                         // create a motor movement down   
+      SARstepYUI--;                     // decrement variable to indicate new coordinate position
+    }
+    while(SARstepXUI != 0)              // while x != 0
+    {
+      step_x();                         // create a motor movement down        
+      SARstepXUI--;                     // decrement variable to indicate new coordinate position
+    }
 }
 /*
-
+    - boolean returns TRUE if mechanized system is back at (0,0) and FALSE otherwise
 */
 bool returnToOriginValidation()
 {
-
+    if((SARstepXUI == 0)&&(SARstepYUI == 0)){ // determine if mechanized system is at the origin
+      return True;
+    }
+    else{
+      return False;
+    }
 }
 
 /*
