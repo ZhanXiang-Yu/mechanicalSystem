@@ -179,7 +179,32 @@ bool returnToOriginValidation()
 /*
 
 */
-void SARScan()
-{
+void SARScan(){
+	//UI Validation
+	bool valid1 = initUIValidation(SARstepX, SARstepY);
+	if (!valid1){
+		print("UI Validation fail);
+		return;
+	}
+	int pointsX, pointsY;
+	//Get number of points (steps to take along each axis)
+	tie(pointsX, pointsY) = computeSARParams(SARstepX, SARstepY);
+	//loop across the entire grid of points as calculated above
+	for (int i = 0; i < pointsY; i++){
+		for (int j = 0; j < pointsX; j++){
+			step_x();
+		}
+		//NOTE: How can step_x be reversed? This is an inefficient placeholder
+		returnToOrigin();
+		for (int k = 0; k < j; k++){
+			step_y();
+		}
+	}
 
+	returnToOrigin();
+	bool checker = false;
+	while (!checker){
+		checker = returnToOriginValidation();
+	}
+	return;
 }
