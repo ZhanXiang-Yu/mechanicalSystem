@@ -165,26 +165,21 @@ bool initUIValidation(int SARstepX , int SARstepY)
     - resultToOrigin moves the mechanized system back to (0,0) on the generated coordinate plane
     - first while loop moves the mechanized system down until y = 0
     - second while loop moves the mechanized system left until x = 0
+    - assumes that step_y and step_x do not update coord. pos of mechanized system & SARstepUI is mechanized system pos
 */
 void returnToOrigin()
 {
-    digitalWrite(dirPinY, HIGH);        // set Y direction
-    digitalWrite(dirPinX, LOW);         // set X direction
-    while(pointsY != 0)                 // while y != 0
+    setDirectionXLeft();                // set Y direction
+    setDirectionYDown();                // set X direction
+    while(SARstepYUI != 0)              // while y != 0
     {
-      digitalWrite(stepPinY, HIGH);     // first half pulse
-      delayMicroseconds(500);         
-      digitalWrite(stepPinY, LOW);      // second half pulse   
-      delayMicroseconds(500);       
-      pointsY--;
+      step_y();                         // create a motor movement down   
+      SARstepYUI--;                     // decrement variable to indicate new coordinate position
     }
-    while(pointsX != 0)                 // while x != 0
+    while(SARstepXUI != 0)              // while x != 0
     {
-      digitalWrite(stepPinX, HIGH);     // write to LEFT movement
-      delayMicroseconds(500);
-      digitalWrite(stepPinX, LOW);      // second half pulse
-      delayMicroseconds(500);           
-      pointsX--;
+      step_x();                         // create a motor movement down        
+      SARstepXUI--;                     // decrement variable to indicate new coordinate position
     }
 }
 /*
@@ -192,11 +187,11 @@ void returnToOrigin()
 */
 bool returnToOriginValidation()
 {
-    if((pointsX != 0)&&(pointsY != 0)){ // determine if mechanized system is off the origin
-      return False;
+    if((SARstepXUI == 0)&&(SARstepYUI == 0)){ // determine if mechanized system is at the origin
+      return True;
     }
     else{
-      return True;
+      return False;
     }
 }
 
