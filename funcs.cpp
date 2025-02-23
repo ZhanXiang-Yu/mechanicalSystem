@@ -129,49 +129,41 @@ void step_y()
     delayMicroseconds(STEP_DELAY);
 }
 
-/*
-TODO: Adjust to update points then calculte steps.
-      (i.e. SARstepXUI = (dimX / pointsX) / microStep)
-      should calculate steps, or the number of times step_x should be 
-      looped to get # of discrete points input 
-*/
+
 void computeSARParams(int pX, int pY)
 {
     // Error handling
-    if (!initUIValidation(SARstepX, SARstepY)){
+    if (!initUIValidation(pX, pY)){
+        // THROW ERROR HERE IF NEEDED LATER //
         return;
     }
 
-    // Updates:
-        // SARstepXUI , SARstepYUI , pointsX , pointsY
+    // Points updated globally
+    pointsX = pX;
+    pointsY = pY;    
 
-    SARstepXUI = SARstepX;
-    SARstepYUI = SARstepY;
+    // Step size = (dim / points) / (microstep)
+        // Essentially how many microsteps for one full step
+    SARstepXUI = (dimX / pointsX) / microStep;
+    SARstepYUI = (dimY / pointsY) / microStep;
 
-    // Points = um / um
-    pointsX = dimX / SARstepX;
-    pointsY = dimY / SARstepY;
+    return;
 }
 
-/*
-TODO: Update to validate points instead of steps.
-      points should be between 0 - 7500 
-      Greater than 7500 points would require smaller than 40 um (not possible)
-*/
+
 bool initUIValidation(int pX , int pY)
 {
     // Check:
-        // Step size > micro step size
-        // Step size < dimensions
+        // pX, pY : (0, 7500]
         // TODO: others?
         
-    // Step size > micro step size
-    if (!(SARstepX > microStep)){return 0;}
-    if (!(SARstepY > microStep)){return 0;}
+    // pX
+    if (pX <= 0)  {return 0;}
+    if (pX > 7500){return 0;}
     
-    // Step size < dimensions
-    if (!(SARstepX < dimX)){return 0;}
-    if (!(SARstepY < dimY)){return 0;}
+    // pY
+    if (pY <= 0)  {return 0;}
+    if (pY > 7500){return 0;}
 
 
     // If all is good, then return true
