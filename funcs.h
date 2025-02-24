@@ -1,7 +1,7 @@
 #ifndef FUNCS_H
 #define FUNCS_H
 
-#include "Arduino.h"
+#include <Arduino.h>
 
 //set pins
 // Define stepper motor connections:
@@ -14,7 +14,7 @@
 #define yhome 10
 
 //motor/grid fixed params
-extern const int microStep; //4mm
+extern const int microStep; //40 um
 
 //TODO: get vals
 extern const int dimX;
@@ -38,7 +38,7 @@ void step_y();
 void move_y(int SARstepY);
 
 //TODO
-void computeSARParams();
+void computeSARParams(int pX, pY);
 
 //TODO
 bool initUIValidation(int dx, int dy);

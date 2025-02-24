@@ -57,7 +57,16 @@ void setup()
   digitalWrite(stepPinx, LOW);
   digitalWrite(stepPiny, LOW);
   digitalWrite(stepPinp, LOW); //trigger not used  for now
-
+  
+  //setup serial terminal
+  Serial.begin(115200);
+  delay(500);
+  Serial.print("\n\n\n");
+  delay(500);
+  Serial.print("\n\nConnecting...\n");
+  delay(500);
+  Serial.print("Connected!\n");
+  delay(2000); // delay 3s on start
 }
 
 

@@ -1,17 +1,18 @@
 //TODO: all arduino stuff
 
 #include "funcs.h"
-#include "Arduino.h"
+#include <Arduino.h>
 
 
 //motor/grid fixed params
-const int microStep = 0.004; //4mm
+const int microStep = 40; //40um (micrometers)
 //arbitary delay for now till get radar params for sync
 const int arbitaryDelay = 1000; //1s
 
-//TODO: get vals
-const int dimX = -1;
-const int dimY = -1;
+//Roughly 40x40 cm Max grid size 
+//Currently using 30x30 cm 
+const int dimX = 300000; //30 cm ~ 300000 um
+const int dimY = 300000;
 
 //dx, dy, pointsX, pointsY, not shared, should be fine
 extern int SARstepXUI = -1;
@@ -63,32 +64,39 @@ void resetSARParams()
 void initUI()
 {
     bool valid = false;
-    Serial.print("enter SAR step size in x/y in int format in this order: dx dy\n");
+    Serial.print("Enter total desired (X Y) points: ");
     while(valid == false)
     {
         if(Serial.available() > 0)
         {
-            SARstepXUI = Serial.parseInt();
-            SARstepYUI = Serial.parseInt();
-            valid = initUIValidation(SARstepXUI, SARstepYUI);
+            tempX = Serial.parseInt();
+            tempY = Serial.parseInt();
+            valid = initUIValidation(tempX, tempY);
             if(valid == true)
             {
-                //computation for pointsY and pointsY
-                computeSARParams();
+                //Compute steps based on Points input
+                computeSARParams(tempX, tempY);
                 break;
             }
             else
             {
+                Serial.print("\nInvalid step input\n");
+                Serial.println("x: ");
+                Serial.println(SARstepXUI);
+                Serial.print("\ny: ");
+                Serial.println(SARstepYUI);
                 resetSARParams();
-                Serial.print("invalid SAR step size x/y input\n");
             }
         }
     }
-    Serial.print("SAR dx SAR dy pointsY pointsY are: \n");
-    Serial.print(SARstepXUI); Serial.print(" "); 
-    Serial.print(SARstepXUI); Serial.print(" ");
-    Serial.print(SARstepXUI); Serial.print(" ");
-    Serial.print(SARstepXUI); Serial.print(" \n");
+    Serial.print("SAR dx: ");
+    Serial.println(SARstepXUI);  
+    Serial.print("SAR dy: ");
+    Serial.println(SARstepYUI); 
+    Serial.print("pointsX: ");
+    Serial.println(pointsX);
+    Serial.print("pointsY: ");
+    Serial.println(pointsY); Serial.print(" \n");
 }
 
 void stopSync() //arbitary delay rn
@@ -100,27 +108,34 @@ void stopSync() //arbitary delay rn
 /*
 
 */
+#define STEP_DELAY 19 
+// Preset Delay can be changed, 19us for fastest PWM
+
+//Fastest PWM is 25600 for 128 microsteps 
 void step_x()
 {
+    
     digitalWrite(stepPinx, HIGH);
-    //TODO: do PWM as fast as possible, check motor spec sheet
-    delayMicroseconds(-1);
+    delayMicroseconds(STEP_DELAY);
+    digitalWrite(stepPinx, LOW);
+    delayMicroseconds(STEP_DELAY);
 }
 
-/*
-
-*/
 void step_y()
 {
     digitalWrite(stepPiny, HIGH);
-    //TODO: do PWM as fast as possible, check motor spec sheet
-    delayMicroseconds(-1);
+    delayMicroseconds(STEP_DELAY);
+    digitalWrite(stepPiny, LOW);
+    delayMicroseconds(STEP_DELAY);
 }
 
 /*
-
+TODO: Adjust to update points then calculte steps.
+      (i.e. SARstepXUI = (dimX / pointsX) / microStep)
+      should calculate steps, or the number of times step_x should be 
+      looped to get # of discrete points input 
 */
-void computeSARParams(int SARstepX, int SARstepY)
+void computeSARParams(int pX, int pY)
 {
     // Error handling
     if (!initUIValidation(SARstepX, SARstepY)){
@@ -133,15 +148,17 @@ void computeSARParams(int SARstepX, int SARstepY)
     SARstepXUI = SARstepX;
     SARstepYUI = SARstepY;
 
-    // Points = cm / cm
+    // Points = um / um
     pointsX = dimX / SARstepX;
     pointsY = dimY / SARstepY;
 }
 
 /*
-
+TODO: Update to validate points instead of steps.
+      points should be between 0 - 7500 
+      Greater than 7500 points would require smaller than 40 um (not possible)
 */
-bool initUIValidation(int SARstepX , int SARstepY)
+bool initUIValidation(int pX , int pY)
 {
     // Check:
         // Step size > micro step size
@@ -149,12 +166,12 @@ bool initUIValidation(int SARstepX , int SARstepY)
         // TODO: others?
         
     // Step size > micro step size
-    if (SARstepX < microStep){return 0;}
-    if (SARstepY < microStep){return 0;}
+    if (!(SARstepX > microStep)){return 0;}
+    if (!(SARstepY > microStep)){return 0;}
     
     // Step size < dimensions
-    if (SARstepX > dimX){return 0;}
-    if (SARstepY > dimY){return 0;}
+    if (!(SARstepX < dimX)){return 0;}
+    if (!(SARstepY < dimY)){return 0;}
 
 
     // If all is good, then return true
@@ -162,45 +179,62 @@ bool initUIValidation(int SARstepX , int SARstepY)
 }
 
 /*
-
+    - resultToOrigin moves the mechanized system back to (0,0) on the generated coordinate plane
+    - first while loop moves the mechanized system down until y = 0
+    - second while loop moves the mechanized system left until x = 0
+    - assumes that step_y and step_x do not update coord. pos of mechanized system & SARstepUI is mechanized system pos
 */
 void returnToOrigin()
 {
-
+    setDirectionXLeft();                // set Y direction
+    setDirectionYDown();                // set X direction
+    while(SARstepYUI > 0)              // while y != 0
+    {
+      step_y();                         // create a motor movement down   
+      SARstepYUI--;                     // decrement variable to indicate new coordinate position
+    }
+    while(SARstepXUI > 0)              // while x != 0
+    {
+      step_x();                         // create a motor movement down        
+      SARstepXUI--;                     // decrement variable to indicate new coordinate position
+    }
 }
 /*
-
+    - boolean returns TRUE if mechanized system is back at (0,0) and FALSE otherwise
 */
 bool returnToOriginValidation()
 {
-
+    if((SARstepXUI == 0)&&(SARstepYUI == 0)){ // determine if mechanized system is at the origin
+      return True;
+    }
+    else{
+      return False;
+    }
 }
 
 /*
+TODO: Did not compile. Debug & Verify ability to compile.
+      Validation & ComputeSARParams removed, done previously so not necessary.
+      Utilize move_x & move_y
+      SetDirectionXLeft() can be used to reverse direction
 
 */
+
+
+
 void SARScan(){
-	//UI Validation
-	bool valid1 = initUIValidation(SARstepX, SARstepY);
-	if (!valid1){
-		print("UI Validation fail);
-		return;
-	}
-	int pointsX, pointsY;
-	//Get number of points (steps to take along each axis)
-	tie(pointsX, pointsY) = computeSARParams(SARstepX, SARstepY);
+	SetDirectionXRight();
+	SetDirectionYUp();
 	//loop across the entire grid of points as calculated above
 	for (int i = 0; i < pointsY; i++){
-		for (int j = 0; j < pointsX; j++){
-			step_x();
+		move_x(pointsX);
+		if (i%2 == 0){
+			SetDirectionXLeft();
+		} else {
+			SetDirectionXRight();
 		}
-		//NOTE: How can step_x be reversed? This is an inefficient placeholder
-		returnToOrigin();
-		for (int k = 0; k < j; k++){
-			step_y();
-		}
+		move_y(1);
 	}
-
 	returnToOrigin();
 	bool checker = false;
 	while (!checker){
