@@ -222,16 +222,17 @@ TODO: Did not compile. Debug & Verify ability to compile.
 
 
 void SARScan(){
+	SetDirectionXRight();
+	SetDirectionYUp();
 	//loop across the entire grid of points as calculated above
 	for (int i = 0; i < pointsY; i++){
-		for (int j = 0; j < pointsX; j++){
-			step_x();
+		move_x(pointsX);
+		if (i%2 == 0){
+			SetDirectionXLeft();
+		} else {
+			SetDirectionXRight();
 		}
-		//NOTE: How can step_x be reversed? This is an inefficient placeholder
-		returnToOrigin();
-		for (int k = 0; k < j; k++){
-			step_y();
-		}
+		move_y(1);
 	}
 	returnToOrigin();
 	bool checker = false;
