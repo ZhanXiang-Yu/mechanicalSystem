@@ -223,15 +223,15 @@ TODO: Did not compile. Debug & Verify ability to compile.
 
 
 void SARScan(){
-	SetDirectionXRight();
-	SetDirectionYUp();
+	setDirectionXRight();
+	setDirectionYUp();
 	//loop across the entire grid of points as calculated above
 	for (int i = 0; i < pointsY; i++){
 		move_x(pointsX);
 		if (i%2 == 0){
-			SetDirectionXLeft();
+			setDirectionXLeft();
 		} else {
-			SetDirectionXRight();
+			setDirectionXRight();
 		}
 		move_y(1);
 	}
