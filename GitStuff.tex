@@ -1,0 +1,65 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{float}
+
+% Custom style for function specifications
+\lstdefinestyle{specification}{
+    basicstyle=\ttfamily\bfseries\small, % Bold monospace for specs
+    backgroundcolor=\color{gray!10},     % Light gray background
+    frame=single,                        % Border around the spec
+    keywordstyle=\color{blue}\bfseries,  % Keywords in bold blue
+    commentstyle=\color{green!50!black}, % Comments in green
+    numbers=none,                        % No line numbers
+    showstringspaces=false
+}
+
+\title{Git commands}
+\author{Daniel Yu}
+\date{\today}
+
+% Define code formatting
+
+\begin{document}
+\lstdefinestyle{ArduinoCode}{
+    language=C++,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    breaklines=true,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    frame=single,
+}
+
+\maketitle
+
+\section{initial commit}
+git init\\
+git add .\\
+git commit -m "Initial commit"\\
+git remote add origin "URL"\\
+git branch -M main\\
+git push -u origin main\\
+
+\section{to pull}
+git clone URL\\
+or using SSH key $\->$ address a bit differnet(TODO)\\
+git pull\\
+git pull origin main\\
+
+\section{mroe important stuff}
+
+\section{misc}
+git remove -v\\
+git branch\\
+
+\end{document}

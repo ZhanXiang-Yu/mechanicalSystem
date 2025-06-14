@@ -34,6 +34,8 @@ Y axis is more arbitrary, but the same, need to pause when it moves up
 */
 
 #include "funcs.h"
+#include <Arduino.h>
+
 
 //init. params.
 void setup()
@@ -72,9 +74,5 @@ void setup()
 
 void loop()
 {
-  resetSARParams();
-  initUI();
-  SARScan();
-  returnToOrigin();
-  resetSARParams();
+ //TODO: just write a superloop here, reference PA.pdf
 }
