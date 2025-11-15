@@ -1,3 +1,4 @@
+from copy import error
 import serial
 import time
 import subprocess
@@ -32,17 +33,53 @@ def move(printerSerial, GCode: str): #TODO: determine G code based on raster sca
 """
 start the applicationn thread, either VNA or TI stuff
 """
-def runApplicationAndSync(command: str): #command is the command you will type on your terminal to run your application
+def runApplicationAndSync(command: str, timeout: float = None): #command is the command you will type on your terminal to run your application
     command = command.split()
-    process = subprocess.Popen(command)
+    #there may be more error types I need to consider    
+    try:
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.PIPE,
+            text=True)
+    except FileNotFoundError as e:
+        print("invalid CLI cmd: ", e)
+        return {
+            "status": "invalid command",
+            "returncode": None,
+            "stdout": None,
+            "stderr": f"Command not found: {command[0]}",
+            "command": command
+        }
     print("application started")
-    process.wait(timeout=10)#I am setting 10s to test
+    try:
+        out, err = process.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        out, err = process.communicate()
+        print("application timed out")
+        return {
+            "status": "timeout",
+            "returncode": process.returncode,
+            "stdout": out,
+            "stderr": err,
+            "command": command
+        }
     if process.returncode == 0:
         print("application finished successfully")
+        status = "success"
     else:
-        print("failed: " + process.stderr) #not sure the error stream works with application
+        print("failed") #not sure the error stream works with application
+        status = "failure"
+    return {
+            status: "timeout",
+            "returncode": process.returncode,
+            "stdout": out,
+            "stderr": err,
+            "command": command
+        }
 
-"return to initial coordinate"
+# return to initial coordinate
 def returnHome(initXPos, initYPos, finalXPos, finalYPos):
     #TODO: based on the init./final pos in sarParams dictionary, write Gcode for the 3D printer to return
     pass
@@ -92,4 +129,40 @@ if __name__ == "__main__":
     #close serial?
     """
     
-    #do testing here
+    #testing application pipeline
+    tests = [
+        {
+            "name": "Success (3s timer)",
+            "cmd": "python test.py 3",
+            "timeout": 10,
+        },
+        {
+            "name": "Intentional fail (--fail)",
+            "cmd": "python test.py 3 --fail",
+            "timeout": 10,
+        },
+        {
+            "name": "Runtime error",
+            "cmd": "python test.py 3 --runtime-error",
+            "timeout": 10,
+        },
+        {
+            "name": "Simulated syntax error",
+            "cmd": "python test.py 3 --syntax-error",
+            "timeout": 10,
+        },
+        {
+            "name": "Timeout (timer longer than timeout)",
+            "cmd": "python test.py 20",
+            "timeout": 2,
+        },
+        {
+            "name": "Invalid command (command not found)",
+            "cmd": "pythonnnn test.py 3",
+            "timeout": 5,
+        },
+    ]
+
+    for t in tests:
+        print(f"##### TEST: {t['name']} #####")
+        runApplicationAndSync(t["cmd"], timeout=t["timeout"])
