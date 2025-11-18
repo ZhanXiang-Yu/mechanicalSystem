@@ -3,6 +3,8 @@ import serial
 import time
 import subprocess
 from pathlib import Path
+from gcodepy.gcode import Gcode
+
 
 def startSerial(port, baud):
     ser = serial.Serial(port, baud, timeout=1)
@@ -14,6 +16,7 @@ def startSerial(port, baud):
 nested for loops to move
 """
 def raster(xSteps: int, ySteps: int, command: str, printerSerial, moveX: str, moveY: str): #TODO: determine G code based on raster scan
+    
     for i in range(ySteps):
         for j in range(xSteps):
             if(j == 0):
@@ -120,6 +123,14 @@ def parseUI():
     return sarParams, moveXG, moveYG, 
 
 
+def gCodeTest(dist: tuple[int, 0, int]): #3D printer x z, y is "forward" direction
+    g = Gcode("Test")
+    g.home()
+    print(g.home_pos)
+    g.zero_extruder()
+    g.travel_absolute(dist)
+    g.close()
+
 if __name__ == "__main__":
     """
     sarParams, moveXG, moveYG = parseUI()    
@@ -129,6 +140,17 @@ if __name__ == "__main__":
     #close serial?
     """
     
+    #serial printer check
+    #startSerial()
+    
+    
+    """
+    test Python gcode module: write a Gcode script -> move abs 0.0,0, move action 1, ..., return home
+    """
+    testArg = (20,0,20)
+    gCodeTest(testArg)
+    
+    """
     #testing application pipeline
     tests = [
         {
@@ -166,3 +188,4 @@ if __name__ == "__main__":
     for t in tests:
         print(f"##### TEST: {t['name']} #####")
         runApplicationAndSync(t["cmd"], timeout=t["timeout"])
+"""
