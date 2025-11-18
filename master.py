@@ -5,6 +5,9 @@ import subprocess
 from pathlib import Path
 from gcodepy.gcode import Gcode
 
+returnHome = "returnHome"
+moveHorizontalX = "moveHorizontalX"
+moveVerticalZ = "moveVerticalZ"
 
 def startSerial(port, baud):
     ser = serial.Serial(port, baud, timeout=1)
@@ -13,24 +16,53 @@ def startSerial(port, baud):
     return ser
 
 """
+write G code -> returnHome, moveHorizontal->X, moveVertical->Z, based on stepsizes
+"""
+def homeG():
+    g = Gcode("returnHome")
+    g.home()
+    g.zero_extruder()
+    g.close()
+
+def moveHorizontalG(stepsize: tuple[int, 0, 0]): #in mm
+    g = Gcode("moveHorizontalX")
+    g.zero_extruder()
+    g.travel(stepsize)
+    g.close()
+
+def moveVerticalG(stepsize: tuple[0, 0, int]): #in mm
+    g = Gcode("moveVerticalZ")
+    g.zero_extruder()
+    g.travel(stepsize)
+    g.close()
+
+"""
 nested for loops to move
 """
-def raster(xSteps: int, ySteps: int, command: str, printerSerial, moveX: str, moveY: str): #TODO: determine G code based on raster scan
+def raster(xSteps: int, ySteps: int, command: str, printerSerial):
     
     for i in range(ySteps):
         for j in range(xSteps):
             if(j == 0):
                 runApplicationAndSync(command)
-            move(printerSerial, moveX) #TODO: Gcode move in X
+            move(printerSerial, moveHorizontalX)
             runApplicationAndSync(command)
-        move(printerSerial, moveY) #TODO: Gcode move in Y
+        move(printerSerial, moveVerticalZ)
 
 """
 move based on GCode str, Gcode str is composed in Gcode()
 """
-def move(printerSerial, GCode: str): #TODO: determine G code based on raster scan
-    printerSerial.write(GCode.encode("ascii"))
-    printerSerial.flush()
+def move(printerSerialObj, GCodeFile: str): #TODO: determine G code based on raster scan
+    #send Gcode file via serial
+    with(GCodeFile, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startwith(";"):
+                continue
+            G = (line + "\n").encode()
+            printerSerialObj.write(G)
+            printerSerialObj.flush()
+            print("sent: ", G)
 
 
 """
@@ -83,9 +115,18 @@ def runApplicationAndSync(command: str, timeout: float = None): #command is the 
         }
 
 # return to initial coordinate
-def returnHome(initXPos, initYPos, finalXPos, finalYPos):
-    #TODO: based on the init./final pos in sarParams dictionary, write Gcode for the 3D printer to return
-    pass
+def returnHome(printerSerialObj):
+    #send Gcode file via serial
+    with(returnHome, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startwith(";"):
+                continue
+            G = (line + "\n").encode()
+            printerSerialObj.write(G)
+            printerSerialObj.flush()
+            print("sent: ", G)
+    print("home returned")
 
 """
 based on user input, return a dictionary of followingn key-value pairs:
@@ -102,11 +143,9 @@ based on user input, return a dictionary of followingn key-value pairs:
 values are random in the above
 to access a dict do dict["keyname"]
 """
-def parseUI():
-    #TODO: what is unit of 3D printer, I used cm here
-    keys1 = ["xSteps", "ySteps", "deltaX", "deltaY", "command"]
-    keys2 = ["initXPos", "initYPos", "finalXPos, finalYPos"]
-    argLst1 = input("enter xSteps, ySteps, deltaX, deltaY, CLI command to run application in cm with 2 sig figs: ").split()
+def parseUI(): # in mm
+    keys1 = ["xSteps", "ySteps", "deltaHorizontal", "deltaVertical", "command"]
+    argLst1 = input("enter xSteps ySteps deltaHorizontal deltaYVertical CLI command to run application in cm with 2 sig figs: ").split()
     sarParams = dict(zip(keys1, argLst1))
     argLst2 = [
         0,
@@ -114,41 +153,29 @@ def parseUI():
         round(sarParams["xSteps"] * sarParams["deltaX"],2),
         round(sarParams["ySteps"] * sarParams["deltaY"],2)
     ]
-    sarParams.update(zip(keys2, argLst2))
     #TODO: input validation, what is the absolute dist of the grid, what would the printer behave if movement command is invalid
     
-    #TODO: based on values from  parseUI, compose Gcode constants
-    moveXG = ""
-    moveYG = ""
-    return sarParams, moveXG, moveYG, 
+    
+    return sarParams
 
-
-def gCodeTest(dist: tuple[int, 0, int]): #3D printer x z, y is "forward" direction
-    g = Gcode("Test")
-    g.home()
-    print(g.home_pos)
-    g.zero_extruder()
-    g.travel_absolute(dist)
-    g.close()
 
 if __name__ == "__main__":
-    """
-    sarParams, moveXG, moveYG = parseUI()    
-    printer=startSerial(-1,-1)
-    raster(sarParams["xSteps"], sarParams["ySteps"], sarParams["command"], printer, moveXG, moveYG,)
-    returnHome(sarParams["initXPos"], sarParams["initYPos"], sarParams["finalXPos"], sarParams["finalYPos"])
-    #close serial?
-    """
+    sarParams = parseUI()    
+    printer=startSerial(-1,-1) #find/set port/baud rate
+    homeG()
+    moveHorizontalG((float(sarParams["deltaHorizontal"]), 0 ,0))
+    moveVerticalG((0, 0, float(sarParams["deltaVertical"])))
     
-    #serial printer check
-    #startSerial()
+    raster(sarParams["xSteps"], sarParams["ySteps"], sarParams["command"], printer)
+    returnHome(printer)
+    #close serial?
+    
+
     
     
     """
     test Python gcode module: write a Gcode script -> move abs 0.0,0, move action 1, ..., return home
     """
-    testArg = (20,0,20)
-    gCodeTest(testArg)
     
     """
     #testing application pipeline
